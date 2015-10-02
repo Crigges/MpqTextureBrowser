@@ -14,7 +14,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.imageio.ImageIO;
 import javax.swing.AbstractListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -32,14 +31,15 @@ import de.peeeq.jmpq3.MpqFile;
 public class ImageListMpqModel extends AbstractListModel<Icon> {
 	private static final long serialVersionUID = 1L;
 	private ArrayList<JMpqEditor> mpqs = new ArrayList<>();
-	private JImageList parent;
 	private ArrayList<String> mergedListFile = new ArrayList<>();
 	private ArrayList<String> filteredListFile = new ArrayList<>();
 	private LoadingCache<String, ImageIcon> imageCacher;
 	private ImageIcon defaultImage = createDefaultImage();
 	private static final int imageScaleX = 64;
 	private static final int imageScaleY = imageScaleX;
-	private ExecutorService taskExecuter = Executors.newSingleThreadExecutor();
+	private ExecutorService fileLoader = Executors.newSingleThreadExecutor();
+	private ExecutorService imageLoader = Executors.newFixedThreadPool(2);
+
 
 	public ImageListMpqModel(File... files) throws JMpqException {
 		for (File f : files) {
@@ -67,14 +67,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	}
 
 	private ImageIcon createDefaultImage() {
-		try {
-			return new ImageIcon(ImageIO
-					.read(new File(
-							"C:\\Users\\Crigges-Pc\\Dropbox\\Public\\Photos\\default.png")));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return new ImageIcon(new BufferedImage(imageScaleX, imageScaleY, BufferedImage.TYPE_INT_RGB));
 	}
 
 	public void filterByString(String filter) {
@@ -107,7 +100,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	private ImageIcon loadImage(String path){
 		final String fixedPath = path;
 		final ImageIcon icon = new ImageIcon(defaultImage.getImage());
-		taskExecuter.submit(new Runnable() {
+		fileLoader.execute(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -120,8 +113,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 						} catch (IOException e) {}
 					}
 				}
-				Thread t = new Thread(new LoadTask(file, icon));
-				t.start();
+				imageLoader.execute(new LoadTask(file, icon));
 			}
 		});
 		return icon;

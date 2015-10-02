@@ -67,6 +67,8 @@ import javax.swing.JTextPane;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 
 public class TextureChooser extends JFrame {
@@ -110,13 +112,15 @@ public class TextureChooser extends JFrame {
 		JSplitPane splitPane_1 = new JSplitPane();
 		splitPane_1.setResizeWeight(0.25);
 		
-		JTree tree = new JTree();
-		tree.setBorder(new LineBorder(new Color(0, 0, 0)));
-		splitPane_1.setLeftComponent(tree);
-		
 		JScrollPane scrollPane = new JScrollPane();
-		splitPane_1.setRightComponent(scrollPane);
-		final JList list = new JList();
+		scrollPane.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				System.out.println(getSize());
+			}
+		});
+		splitPane_1.setLeftComponent(scrollPane);
+		final JList list = new JImageList();
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		scrollPane.setViewportView(list);
