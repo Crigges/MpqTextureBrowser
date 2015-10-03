@@ -12,6 +12,7 @@ import javax.swing.ListSelectionModel;
 public class JImageList extends JList<Icon>{
 	private static final long serialVersionUID = 1L;
 	private ImageListMpqModel model = null;
+	private int currentFrameWidth = 200;
 	
 	public JImageList() {
 		super();
@@ -20,6 +21,7 @@ public class JImageList extends JList<Icon>{
 	}
 	
 	public void fitToWidth(int frameWidth){
+		currentFrameWidth = frameWidth;
 		if(model != null){
 			int width = model.getDefaultImage().getIconWidth();
 			int breakAt = (frameWidth - 20) / (width + 2);
@@ -40,10 +42,15 @@ public class JImageList extends JList<Icon>{
 		if(model instanceof ImageListMpqModel){
 			setMpqModel((ImageListMpqModel) model);
 			super.setModel(model);
-			System.out.println("yo");
 		}else{
-			throw new RuntimeException("An error is occured: \"Error\" with reason: \"Error\"");
+			throw new RuntimeException("An error occured: \"Error\" for reason: \"Error\"");
 		}
+	}
+	
+	@Override
+	public void updateUI() {
+		fitToWidth(currentFrameWidth);
+		super.updateUI();
 	}
 	
 

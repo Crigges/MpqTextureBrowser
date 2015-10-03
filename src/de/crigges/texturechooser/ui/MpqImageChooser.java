@@ -7,6 +7,8 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JScrollPane;
@@ -24,6 +26,7 @@ import javax.swing.JLabel;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.Color;
 
 public class MpqImageChooser extends JFrame {
 
@@ -31,6 +34,7 @@ public class MpqImageChooser extends JFrame {
 	private JPanel contentPane;
 	private JTextField txtName;
 	private JTextField txtSearch;
+	private ImageListMpqModel model;
 
 	/**
 	 * Launch the application.
@@ -47,6 +51,7 @@ public class MpqImageChooser extends JFrame {
 				try {
 					MpqImageChooser frame = new MpqImageChooser();
 					frame.setVisible(true);
+					frame.txtSearch.requestFocus();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -59,7 +64,7 @@ public class MpqImageChooser extends JFrame {
 	 */
 	public MpqImageChooser() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(200, 200, 600, 400);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -82,7 +87,8 @@ public class MpqImageChooser extends JFrame {
 		);
 		
 		final JImageList imageList = new JImageList();
-		ImageListMpqModel model = null;
+		imageList.setBackground(Color.BLACK);
+		model = null;
 		try {
 			model = new ImageListMpqModel(new File("C:\\Users\\Crigges-Pc\\Desktop\\Desktop\\mpqedit\\war3.mpq"));
 		} catch (JMpqException e) {
@@ -98,8 +104,30 @@ public class MpqImageChooser extends JFrame {
 			}
 		});
 		txtSearch = new JTextField();
+		txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				updateFilter();
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				updateFilter();
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				updateFilter();
+			}
+			
+			public void updateFilter(){
+				model.filterByString(txtSearch.getText());
+				imageList.updateUI();
+				
+			}
+		});
 		txtSearch.setFont(new Font("Tahoma", Font.PLAIN, 12));
-		txtSearch.setText("Search");
 		txtSearch.setColumns(10);
 		
 		txtName = new JTextField();

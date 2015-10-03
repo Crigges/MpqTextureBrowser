@@ -18,6 +18,8 @@ import javax.swing.AbstractListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import sun.awt.image.ByteArrayImageSource;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -47,7 +49,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 		}
 		mergeListFiles();
 		CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
-		builder.maximumSize(1000).expireAfterWrite(1, TimeUnit.MINUTES);
+		builder.maximumSize(1000).expireAfterWrite(10, TimeUnit.MINUTES);
 		imageCacher = builder.build(new CacheLoader<String, ImageIcon>() {
 					public ImageIcon load(String key){
 						return loadImage(key);
@@ -105,15 +107,21 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 			@Override
 			public void run() {
 				MpqFile file = null;
+				ByteArrayInputStream inStream = null;
 				for (JMpqEditor editor : mpqs) {
 					if (editor.hasFile(fixedPath)) {
 						try {
 							file = editor.getMpqFile(fixedPath);
+							ByteArrayOutputStream outStream = new ByteArrayOutputStream(file.getNormalSize());
+							file.extractToOutputStream(outStream);
+							inStream = new ByteArrayInputStream(outStream.toByteArray());
 							break;
 						} catch (IOException e) {}
 					}
 				}
-				imageLoader.execute(new LoadTask(file, icon));
+				if(file != null){
+					imageLoader.execute(new LoadTask(file, inStream, icon));
+				}
 			}
 		});
 		return icon;
@@ -135,31 +143,25 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	}
 
 	private class LoadTask implements Runnable{
-		private MpqFile file;
+		private ByteArrayInputStream stream;
 		private ImageIcon icon;
+		private MpqFile file;
 		
-		private LoadTask(MpqFile file, ImageIcon icon) {
+		private LoadTask(MpqFile file, ByteArrayInputStream stream, ImageIcon icon) {
 			this.file = file;
+			this.stream = stream;
 			this.icon = icon;
 		}
 
 		@Override
 		public void run() {
-			ByteArrayOutputStream outStream = new ByteArrayOutputStream(file.getNormalSize());
-			try {
-				file.extractToOutputStream(outStream);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			InputStream inStream = new ByteArrayInputStream(
-					outStream.toByteArray());
 			try {
 				BufferedImage img;
 				if(file.getName().toLowerCase().endsWith(".blp")){
-					img = BlpFile.read("Picture", inStream);
+					img = BlpFile.read("Picture", stream);
 				}else{
 					try{
-						img = TgaFile.readTGA("Picture", inStream);
+						img = TgaFile.readTGA("Picture", stream);
 					}catch(IllegalStateException e){
 						return;
 					}
