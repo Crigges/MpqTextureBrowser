@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -17,8 +16,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-
-import sun.awt.image.ByteArrayImageSource;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -69,7 +66,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	}
 
 	private ImageIcon createDefaultImage() {
-		return new ImageIcon(new BufferedImage(imageScaleX, imageScaleY, BufferedImage.TYPE_INT_RGB));
+		return new MpqImageIcon(new BufferedImage(imageScaleX, imageScaleY, BufferedImage.TYPE_INT_RGB), "Invaild");
 	}
 
 	public void filterByString(String filter) {
@@ -101,7 +98,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	
 	private ImageIcon loadImage(String path){
 		final String fixedPath = path;
-		final ImageIcon icon = new ImageIcon(defaultImage.getImage());
+		final ImageIcon icon = new MpqImageIcon(defaultImage.getImage(), path);
 		fileLoader.execute(new Runnable() {
 			
 			@Override

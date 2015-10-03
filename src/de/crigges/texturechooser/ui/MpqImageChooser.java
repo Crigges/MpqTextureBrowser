@@ -1,7 +1,14 @@
 package de.crigges.texturechooser.ui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.EventQueue;
+import java.awt.FocusTraversalPolicy;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
@@ -27,6 +34,12 @@ import javax.swing.JLabel;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.Color;
+
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class MpqImageChooser extends JFrame {
 
@@ -64,7 +77,7 @@ public class MpqImageChooser extends JFrame {
 	 */
 	public MpqImageChooser() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(200, 200, 600, 400);
+		setBounds(200, 200, 720, 400);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -72,6 +85,7 @@ public class MpqImageChooser extends JFrame {
 		final JScrollPane scrollPane = new JScrollPane();
 		
 		JPanel panel = new JPanel();
+		
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -87,6 +101,14 @@ public class MpqImageChooser extends JFrame {
 		);
 		
 		final JImageList imageList = new JImageList();
+		imageList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				Icon temp = model.getElementAt(imageList.getSelectedIndex());
+				if(temp instanceof MpqImageIcon){
+					txtName.setText(((MpqImageIcon) temp).getPath());
+				}
+			}
+		});
 		imageList.setBackground(Color.BLACK);
 		model = null;
 		try {
@@ -132,7 +154,7 @@ public class MpqImageChooser extends JFrame {
 		
 		txtName = new JTextField();
 		txtName.setFont(new Font("Tahoma", Font.PLAIN, 12));
-		txtName.setText("Name");
+		txtName.setText("None");
 		txtName.setColumns(10);
 		
 		JButton btnCancel = new JButton("Cancel");
@@ -148,11 +170,11 @@ public class MpqImageChooser extends JFrame {
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel.createSequentialGroup()
-					.addComponent(txtSearch, GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
+					.addComponent(txtSearch, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblName)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)
+					.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 207, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnCancel)
 					.addGap(5)
@@ -171,15 +193,28 @@ public class MpqImageChooser extends JFrame {
 							.addComponent(btnSelect))
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGap(6)
-							.addComponent(txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_panel.createSequentialGroup()
-							.addGap(6)
 							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
 								.addComponent(txtSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblName))))
+								.addComponent(lblName)))
+						.addGroup(gl_panel.createSequentialGroup()
+							.addGap(6)
+							.addComponent(txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
 					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 		);
 		panel.setLayout(gl_panel);
 		contentPane.setLayout(gl_contentPane);
+		KeyboardFocusManager.getCurrentKeyboardFocusManager()
+		  .addKeyEventDispatcher(new KeyEventDispatcher() {
+		      @Override
+		      public boolean dispatchKeyEvent(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_TAB && txtName.hasFocus()) {
+					imageList.requestFocus();
+				}
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					System.out.println(txtName.getText().replace("\\", "\\\\") + "was selected");
+				}
+				return false;
+		      }
+		});
 	}
 }
