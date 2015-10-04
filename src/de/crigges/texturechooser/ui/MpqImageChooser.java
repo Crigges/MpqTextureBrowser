@@ -40,6 +40,8 @@ import javax.swing.event.ListSelectionEvent;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class MpqImageChooser extends JFrame {
 
@@ -166,6 +168,17 @@ public class MpqImageChooser extends JFrame {
 		
 		JLabel lblName = new JLabel("Name:");
 		lblName.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		
+		JButton button = new JButton("+");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				model.increaseScale();
+			}
+		});
+		button.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		
+		JButton button_1 = new JButton("-");
+		button_1.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		GroupLayout gl_panel = new GroupLayout(panel);
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
@@ -174,7 +187,11 @@ public class MpqImageChooser extends JFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblName)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 207, Short.MAX_VALUE)
+					.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(button_1)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(button)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnCancel)
 					.addGap(5)
@@ -187,7 +204,10 @@ public class MpqImageChooser extends JFrame {
 					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGap(5)
-							.addComponent(btnCancel))
+							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+								.addComponent(btnCancel)
+								.addComponent(button)
+								.addComponent(button_1)))
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGap(5)
 							.addComponent(btnSelect))

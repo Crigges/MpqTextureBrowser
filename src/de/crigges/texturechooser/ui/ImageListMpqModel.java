@@ -34,8 +34,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	private ArrayList<String> filteredListFile = new ArrayList<>();
 	private LoadingCache<String, ImageIcon> imageCacher;
 	private ImageIcon defaultImage = createDefaultImage();
-	private static final int imageScaleX = 64;
-	private static final int imageScaleY = imageScaleX;
+	private int imageScale = 64;
 	private ExecutorService fileLoader = Executors.newSingleThreadExecutor();
 	private ExecutorService imageLoader = Executors.newFixedThreadPool(2);
 
@@ -66,7 +65,19 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	}
 
 	private ImageIcon createDefaultImage() {
-		return new MpqImageIcon(new BufferedImage(imageScaleX, imageScaleY, BufferedImage.TYPE_INT_RGB), "Invaild");
+		return new MpqImageIcon(new BufferedImage(imageScale, imageScale, BufferedImage.TYPE_INT_RGB), "Invaild");
+	}
+	
+	public void increaseScale(){
+		imageScale += 20;
+		imageCacher.invalidateAll();
+		fireContentsChanged(null, 0, mergedListFile.size() - 1);
+	}
+	
+	public void decreaseScale(){
+		imageScale -= 20;
+		imageCacher.invalidateAll();
+		fireContentsChanged(null, 0, mergedListFile.size() - 1);
 	}
 
 	public void filterByString(String filter) {
@@ -163,7 +174,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 						return;
 					}
 				}
-				img = resize(img, imageScaleX, imageScaleY);
+				img = resize(img, imageScale, imageScale);
 				icon.setImage(img);
 				fireContentsChanged(icon, 0, mergedListFile.size() - 1);
 			} catch (IOException e) {
