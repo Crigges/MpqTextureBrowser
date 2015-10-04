@@ -49,6 +49,9 @@ public class JImageList extends JList<Icon>{
 	
 	@Override
 	public void updateUI() {
+		if(model != null){
+			setPrototypeCellValue(model.getDefaultImage());
+		}
 		fitToWidth(currentFrameWidth);
 		super.updateUI();
 	}

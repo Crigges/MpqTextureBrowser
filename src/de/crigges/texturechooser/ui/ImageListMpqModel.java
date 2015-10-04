@@ -33,8 +33,8 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	private ArrayList<String> mergedListFile = new ArrayList<>();
 	private ArrayList<String> filteredListFile = new ArrayList<>();
 	private LoadingCache<String, ImageIcon> imageCacher;
-	private ImageIcon defaultImage = createDefaultImage();
 	private int imageScale = 64;
+	private ImageIcon defaultImage = createDefaultImage();
 	private ExecutorService fileLoader = Executors.newSingleThreadExecutor();
 	private ExecutorService imageLoader = Executors.newFixedThreadPool(2);
 
@@ -45,7 +45,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 		}
 		mergeListFiles();
 		CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
-		builder.maximumSize(1000).expireAfterWrite(10, TimeUnit.MINUTES);
+		builder.maximumSize(4000).expireAfterWrite(10, TimeUnit.MINUTES);
 		imageCacher = builder.build(new CacheLoader<String, ImageIcon>() {
 					public ImageIcon load(String key){
 						return loadImage(key);
@@ -71,13 +71,17 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 	public void increaseScale(){
 		imageScale += 20;
 		imageCacher.invalidateAll();
-		fireContentsChanged(null, 0, mergedListFile.size() - 1);
+		defaultImage = createDefaultImage();
+		fireContentsChanged(defaultImage, 0, mergedListFile.size() - 1);
 	}
 	
 	public void decreaseScale(){
-		imageScale -= 20;
-		imageCacher.invalidateAll();
-		fireContentsChanged(null, 0, mergedListFile.size() - 1);
+		if(imageScale > 40){
+			imageScale -= 20;
+			imageCacher.invalidateAll();
+			defaultImage = createDefaultImage();
+			fireContentsChanged(defaultImage, 0, mergedListFile.size() - 1);
+		}
 	}
 
 	public void filterByString(String filter) {

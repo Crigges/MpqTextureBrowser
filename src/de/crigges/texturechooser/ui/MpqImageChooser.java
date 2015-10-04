@@ -173,11 +173,18 @@ public class MpqImageChooser extends JFrame {
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				model.increaseScale();
+				imageList.updateUI();
 			}
 		});
 		button.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		
 		JButton button_1 = new JButton("-");
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				model.decreaseScale();
+				imageList.updateUI();
+			}
+		});
 		button_1.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		GroupLayout gl_panel = new GroupLayout(panel);
 		gl_panel.setHorizontalGroup(
