@@ -45,7 +45,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 		}
 		mergeListFiles();
 		CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
-		builder.maximumSize(4000).expireAfterWrite(10, TimeUnit.MINUTES);
+		builder.maximumSize(4000);
 		imageCacher = builder.build(new CacheLoader<String, ImageIcon>() {
 					public ImageIcon load(String key){
 						return loadImage(key);
@@ -132,7 +132,7 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 					}
 				}
 				if(file != null){
-					imageLoader.execute(new LoadTask(file, inStream, icon));
+					imageLoader.execute(new LoadTask(file.getName(), inStream, icon));
 				}
 			}
 		});
@@ -153,14 +153,38 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 			return defaultImage;
 		}
 	}
+	
+	public BufferedImage getImageAt(int index) throws IOException{
+		String s = filteredListFile.get(index);
+		BufferedImage img = null;
+		for (JMpqEditor editor : mpqs) {
+			if (editor.hasFile(s)) {
+				MpqFile file = editor.getMpqFile(s);
+				ByteArrayOutputStream outStream = new ByteArrayOutputStream(file.getNormalSize());
+				file.extractToOutputStream(outStream);
+				ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
+				if(s.toLowerCase().endsWith(".blp")){
+					img = BlpFile.read("Picture", inStream);
+				}else{
+					try{
+						img = TgaFile.readTGA("Picture", inStream);
+					}catch(IllegalStateException e){
+						return img;
+					}
+				}
+				return img;
+			}
+		}
+		return img;
+	}
 
 	private class LoadTask implements Runnable{
 		private ByteArrayInputStream stream;
 		private ImageIcon icon;
-		private MpqFile file;
+		private String name;
 		
-		private LoadTask(MpqFile file, ByteArrayInputStream stream, ImageIcon icon) {
-			this.file = file;
+		private LoadTask(String name, ByteArrayInputStream stream, ImageIcon icon) {
+			this.name = name;
 			this.stream = stream;
 			this.icon = icon;
 		}
@@ -169,12 +193,15 @@ public class ImageListMpqModel extends AbstractListModel<Icon> {
 		public void run() {
 			try {
 				BufferedImage img;
-				if(file.getName().toLowerCase().endsWith(".blp")){
+				if(name.toLowerCase().endsWith(".blp")){
 					img = BlpFile.read("Picture", stream);
 				}else{
 					try{
 						img = TgaFile.readTGA("Picture", stream);
 					}catch(IllegalStateException e){
+						if(icon instanceof MpqImageIcon){
+							//System.out.println(((MpqImageIcon) icon).getPath());
+						}
 						return;
 					}
 				}

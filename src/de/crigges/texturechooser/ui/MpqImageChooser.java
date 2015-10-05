@@ -7,8 +7,12 @@ import java.awt.FocusTraversalPolicy;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 
+import javafx.stage.FileChooser;
+
+import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
@@ -28,6 +32,7 @@ import javax.swing.JTextField;
 
 import java.awt.Font;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JLabel;
 
@@ -37,11 +42,15 @@ import java.awt.Color;
 
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+
+import javax.swing.ListSelectionModel;
 
 public class MpqImageChooser extends JFrame {
 
@@ -64,9 +73,17 @@ public class MpqImageChooser extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MpqImageChooser frame = new MpqImageChooser();
-					frame.setVisible(true);
-					frame.txtSearch.requestFocus();
+					JFileChooser fc = new JFileChooser();
+					fc.removeChoosableFileFilter(fc.getFileFilter());
+					FileNameExtensionFilter filter = new FileNameExtensionFilter("MpqArchives - .mpq", "mpq");
+					fc.addChoosableFileFilter(filter);
+					fc.setMultiSelectionEnabled(true);
+					int res = fc.showOpenDialog(null);
+					if (res == JFileChooser.APPROVE_OPTION) {
+						MpqImageChooser frame = new MpqImageChooser(fc.getSelectedFiles());
+						frame.setVisible(true);
+						frame.txtSearch.requestFocus();
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -77,7 +94,7 @@ public class MpqImageChooser extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MpqImageChooser() {
+	public MpqImageChooser(File[] mpqs) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(200, 200, 720, 400);
 		contentPane = new JPanel();
@@ -114,7 +131,7 @@ public class MpqImageChooser extends JFrame {
 		imageList.setBackground(Color.BLACK);
 		model = null;
 		try {
-			model = new ImageListMpqModel(new File("C:\\Users\\Crigges-Pc\\Desktop\\Desktop\\mpqedit\\war3.mpq"));
+			model = new ImageListMpqModel(mpqs);
 		} catch (JMpqException e) {
 			e.printStackTrace();
 		}
@@ -148,7 +165,6 @@ public class MpqImageChooser extends JFrame {
 			public void updateFilter(){
 				model.filterByString(txtSearch.getText());
 				imageList.updateUI();
-				
 			}
 		});
 		txtSearch.setFont(new Font("Tahoma", Font.PLAIN, 12));
@@ -159,11 +175,44 @@ public class MpqImageChooser extends JFrame {
 		txtName.setText("None");
 		txtName.setColumns(10);
 		
-		JButton btnCancel = new JButton("Cancel");
-		btnCancel.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		
-		
-		JButton btnSelect = new JButton("Select");
+		JButton btnSelect = new JButton("Save As..");
+		btnSelect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ImageSaveDialog dia = new ImageSaveDialog();
+				int returnVal = dia.showSaveDialog(contentPane);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					String type = dia.getFileType();
+					if(type.equals(".png")){
+						BufferedImage img = null;
+						try {
+							img = model.getImageAt(imageList.getSelectedIndex());
+						} catch (IOException e2) {
+							// TODO Auto-generated catch block
+							e2.printStackTrace();
+						}
+						try {
+							ImageIO.write(img, "png", dia.getPolishedFile());
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}else if(type.equals(".jpg")){
+						BufferedImage img = null;
+						try {
+							img = model.getImageAt(imageList.getSelectedIndex());
+						} catch (IOException e2) {
+							// TODO Auto-generated catch block
+							e2.printStackTrace();
+						}
+						try {
+							ImageIO.write(img, "jpg", dia.getPolishedFile());
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		});
 		btnSelect.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		
 		JLabel lblName = new JLabel("Name:");
@@ -194,14 +243,12 @@ public class MpqImageChooser extends JFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblName)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
+					.addComponent(txtName, GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(button_1)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(button)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnCancel)
-					.addGap(5)
 					.addComponent(btnSelect)
 					.addGap(9))
 		);
@@ -212,12 +259,9 @@ public class MpqImageChooser extends JFrame {
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGap(5)
 							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-								.addComponent(btnCancel)
+								.addComponent(btnSelect)
 								.addComponent(button)
 								.addComponent(button_1)))
-						.addGroup(gl_panel.createSequentialGroup()
-							.addGap(5)
-							.addComponent(btnSelect))
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGap(6)
 							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
@@ -236,9 +280,6 @@ public class MpqImageChooser extends JFrame {
 		      public boolean dispatchKeyEvent(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_TAB && txtName.hasFocus()) {
 					imageList.requestFocus();
-				}
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					System.out.println(txtName.getText().replace("\\", "\\\\") + "was selected");
 				}
 				return false;
 		      }
