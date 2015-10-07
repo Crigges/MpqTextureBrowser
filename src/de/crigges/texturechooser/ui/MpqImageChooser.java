@@ -75,7 +75,7 @@ public class MpqImageChooser extends JFrame {
 				try {
 					JFileChooser fc = new JFileChooser();
 					fc.removeChoosableFileFilter(fc.getFileFilter());
-					FileNameExtensionFilter filter = new FileNameExtensionFilter("MpqArchives - .mpq", "mpq");
+					FileNameExtensionFilter filter = new FileNameExtensionFilter("MpqArchives - .mpq", "mpq", "w3m", "w3x");
 					fc.addChoosableFileFilter(filter);
 					fc.setMultiSelectionEnabled(true);
 					int res = fc.showOpenDialog(null);
